@@ -107,19 +107,13 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
                   textStyle: const TextStyle(fontSize: 20)),
               child: Text(mDataButtonTitle),
               onPressed: () {
-                if (MyStatefulWidget.lDataNo != null) {
-                  showDialog(
-                      context: context,
-                      barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
-                      builder: (BuildContext context) {
-                        return ListData(this).getListData(
-                            context,
-                            _sharedPreferences,
-                            MyStatefulWidget.lDataNo! + '_');
-                      });
-                } else {
-                  CustomAlert().flutterDialog(context, '확인', '대분류를 선택해 주세요.');
-                }
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      return ListData(this).getListData(context,
+                          _sharedPreferences, MyStatefulWidget.lDataNo! + '_');
+                    });
               },
             ),
           ),
@@ -131,17 +125,11 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
               child: Text(sDataButtonTitle),
               onPressed: () {
                 if (MyStatefulWidget.mDataNo != null) {
-                  showDialog(
-                      context: context,
-                      barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
-                      builder: (BuildContext context) {
-                        return ListData(this).getListData(
-                            context,
-                            _sharedPreferences,
-                            MyStatefulWidget.mDataNo! + '_');
-                      });
+                  ManageOpenApi().getSDataHttp(MyStatefulWidget.mDataNo!);
+                  // ManageOpenApi().getDataDio(
+                  //     MyStatefulWidget.lDataNo!, MyStatefulWidget.mDataNo!);
                 } else {
-                  CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
+                  CustomAlert().flutterDialog(context, '확인', '대분류를 선택해 주세요.');
                 }
               },
             ),
@@ -152,7 +140,13 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
                   textStyle: const TextStyle(fontSize: 20)),
               child: Text("Open api call"),
               onPressed: () {
-                ManageOpenApi().getData('06', '0614');
+                if (MyStatefulWidget.mDataNo != null) {
+                  ManageOpenApi().getSDataHttp(MyStatefulWidget.mDataNo!);
+                  // ManageOpenApi().getDataDio(
+                  //     MyStatefulWidget.lDataNo!, MyStatefulWidget.mDataNo!);
+                } else {
+                  CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
+                }
               },
             ),
           )
@@ -161,16 +155,14 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
     );
   }
 
-  void userChoiceEvent(dataType, dataValue){
-    if(dataType==DataType.large){
-      lDataButtonTitle+='('+dataValue+')';
-    }else if(dataType==DataType.medium){
-      mDataButtonTitle+='('+dataValue+')';
-    }else if(dataType==DataType.small){
-      sDataButtonTitle+='('+dataValue+')';
+  void userChoiceEvent(dataType, dataValue) {
+    if (dataType == DataType.large) {
+      lDataButtonTitle += '(' + dataValue + ')';
+    } else if (dataType == DataType.medium) {
+      mDataButtonTitle += '(' + dataValue + ')';
+    } else if (dataType == DataType.small) {
+      sDataButtonTitle += '(' + dataValue + ')';
     }
-    setState(() {
-
-    });
+    setState(() {});
   }
 }
