@@ -1,77 +1,176 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'init_data/data_load.dart';
+import 'contents/alert_dialog.dart';
+import 'contents/constants.dart';
+import 'contents/item_list_data.dart';
+import 'init_data/future_build.dart';
 import 'init_data/open_api.dart';
 
 void main() => runApp(MaterialApp(home: MyApp()));
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('파일 읽기')),
-        body: Column(
-          children: [
-            SingleChildScrollView(
-              // 수직 스크롤 지원
-              child: FutureBuilder(
-                // future: loadAsset(['assets/file/sData.txt','assets/file/mData.txt','assets/file/lData.txt']),
-                future: loadAsset(
-                    ['assets/file/mData.txt', 'assets/file/lData.txt']),
-                builder: (context, snapshot) {
-                  //해당 부분은 data를 아직 받아 오지 못했을때 실행되는 부분을 의미한다.
-                  if (snapshot.hasData == false) {
-                    return CircularProgressIndicator();
-                  }
-                  //error가 발생하게 될 경우 반환하게 되는 부분
-                  else if (snapshot.hasError) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: TextStyle(fontSize: 15),
-                      ),
-                    );
-                  } else {
-                    DataLoad().load(snapshot);
-                  }
-                  return Text("abcd");
-                },
-              ),
+    return const MaterialApp(
+      title: 'Flutter Code Sample',
+      home: MyStatefulWidget(),
+    );
+  }
+}
+
+class MyStatefulWidget extends StatefulWidget {
+  const MyStatefulWidget({Key? key}) : super(key: key);
+  static String? date;
+  static String? lDataNo;
+  static String? mDataNo;
+  static String? sDataNo;
+
+  // static late String sDataNo;
+  // static late String sDataNo;
+
+  @override
+  State<MyStatefulWidget> createState() => MyStatefulWidgetState();
+}
+
+class MyStatefulWidgetState extends State<MyStatefulWidget> {
+  late Size size;
+  late SharedPreferences _sharedPreferences;
+  String lDataButtonTitle = "대분류";
+  String mDataButtonTitle = "중분류";
+  String sDataButtonTitle = "소분류";
+
+  @override
+  void initState() {
+    super.initState();
+    PreWork().loadAsset(['assets/file/mData.txt', 'assets/file/lData.txt']);
+    getSharedPreferences();
+  }
+
+  DateTime currentDate = DateTime.now();
+
+  Future<void> _showCalendar(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: currentDate,
+        firstDate: DateTime(2015),
+        lastDate: DateTime(2050));
+    if (pickedDate != null && pickedDate != currentDate)
+      setState(() {
+        currentDate = pickedDate;
+      });
+  }
+
+  void getSharedPreferences() async {
+    _sharedPreferences = await SharedPreferences.getInstance();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('경매정보 조회')),
+      body: Container(
+        margin: EdgeInsets.all(2),
+        child: ListView(children: [
+          //calendar
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text(currentDate.toString()),
+              onPressed: () => _showCalendar(context),
             ),
-            Container(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 20)),
-                child: Text("Open api call"),
-                onPressed:(){
-                  ManageOpenApi().getWeather('06','0614');
+          ),
+          //대분류
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text(lDataButtonTitle),
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      return ListData(this)
+                          .getListData(context, _sharedPreferences, '_');
+                    });
+              },
+            ),
+          ),
+          //중분류
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text(mDataButtonTitle),
+              onPressed: () {
+                if (MyStatefulWidget.lDataNo != null) {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                      builder: (BuildContext context) {
+                        return ListData(this).getListData(
+                            context,
+                            _sharedPreferences,
+                            MyStatefulWidget.lDataNo! + '_');
+                      });
+                } else {
+                  CustomAlert().flutterDialog(context, '확인', '대분류를 선택해 주세요.');
                 }
-                ,
-              ),
-            )
-          ],
-        ),
+              },
+            ),
+          ),
+          //소분류
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text(sDataButtonTitle),
+              onPressed: () {
+                if (MyStatefulWidget.mDataNo != null) {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                      builder: (BuildContext context) {
+                        return ListData(this).getListData(
+                            context,
+                            _sharedPreferences,
+                            MyStatefulWidget.mDataNo! + '_');
+                      });
+                } else {
+                  CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
+                }
+              },
+            ),
+          ),
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text("Open api call"),
+              onPressed: () {
+                ManageOpenApi().getData('06', '0614');
+              },
+            ),
+          )
+        ]),
       ),
     );
   }
 
-  // assets 폴더 아래에 2016_GDP.txt 파일 있어야 함.
-  // AssetBundle 객체를 통해 리소스에 접근.
-  // DefaultAssetBundle 클래스 또는 미리 만들어 놓은 rootBundle 객체 사용.
-  // async는 비동기 함수, await는 비동기 작업이 종료될 때까지 기다린다는 뜻.
-  // 그러나, 함수 자체가 블록되지는 않고 예약 전달의 형태로 함수 반환됨.
-  // 따라서 Future 클래스를 사용하기 위해서는 FutureBuilder 등의 특별한 클래스가 필요함.
-  Future<List<String>?> loadAsset(List<String> paths) async {
-    List<String> result = [];
-    for (var path in paths) {
-      result.add(await rootBundle.loadString(path));
+  void userChoiceEvent(dataType, dataValue){
+    if(dataType==DataType.large){
+      lDataButtonTitle+='('+dataValue+')';
+    }else if(dataType==DataType.medium){
+      mDataButtonTitle+='('+dataValue+')';
+    }else if(dataType==DataType.small){
+      sDataButtonTitle+='('+dataValue+')';
     }
-    return result;
+    setState(() {
+
+    });
   }
 }

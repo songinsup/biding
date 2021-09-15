@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
 class ManageOpenApi {
-  Future<void> getWeather(String lkey, String mKey) async {
+  Future<void> getData(String lkey, String mKey) async {
 
     // var serviceKey='oNkvjjLGUKoaVi%2B2lv%2FvznwlLxP4R5zsGgIO%2FDRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc%2B73H%2BzY0ECvAsvnyA%3D%3D';
     String serviceKey='oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
