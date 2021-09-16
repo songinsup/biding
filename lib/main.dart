@@ -23,13 +23,6 @@ class MyApp extends StatelessWidget {
 
 class MyStatefulWidget extends StatefulWidget {
   const MyStatefulWidget({Key? key}) : super(key: key);
-  static String? date;
-  static String? lDataNo;
-  static String? mDataNo;
-  static String? sDataNo;
-
-  // static late String sDataNo;
-  // static late String sDataNo;
 
   @override
   State<MyStatefulWidget> createState() => MyStatefulWidgetState();
@@ -37,16 +30,36 @@ class MyStatefulWidget extends StatefulWidget {
 
 class MyStatefulWidgetState extends State<MyStatefulWidget> {
   late Size size;
+
+  String? date;
+  String? _lDataNo;
+  String? _mDataNo;
+  String? _sDataNo;
+  String? _wltNo;
+  String? _wltprNo;
+
   late SharedPreferences _sharedPreferences;
-  String lDataButtonTitle = "대분류";
-  String mDataButtonTitle = "중분류";
-  String sDataButtonTitle = "소분류";
+  static const String _lDataButtonDefaultTitle = "대분류";
+  static const String _mDataButtonDefaultTitle = "중분류";
+  static const String _sDataButtonDefaultTitle = "소분류";
+  static const String _wltDataButtonDefaultTitle = "도매시장";
+  static const String _wltprDataButtonDefaultTitle = "도매시장법인";
+  String? _lDataButtonTitle;
+  String? _mDataButtonTitle;
+  String? _sDataButtonTitle;
+  String? _wltDataButtonTitle;
+  String? _wltprDataButtonTitle;
 
   @override
   void initState() {
     super.initState();
     PreWork().loadAsset(['assets/file/mData.txt', 'assets/file/lData.txt']);
     getSharedPreferences();
+    _lDataButtonTitle = _lDataButtonDefaultTitle;
+    _mDataButtonTitle = _mDataButtonDefaultTitle;
+    _sDataButtonTitle = _sDataButtonDefaultTitle;
+    _wltDataButtonTitle = _wltDataButtonDefaultTitle;
+    _wltprDataButtonTitle = _wltprDataButtonDefaultTitle;
   }
 
   DateTime currentDate = DateTime.now();
@@ -88,14 +101,14 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 20)),
-              child: Text(lDataButtonTitle),
+              child: Text(_lDataButtonTitle!),
               onPressed: () {
                 showDialog(
                     context: context,
                     barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
                     builder: (BuildContext context) {
-                      return ListData(this)
-                          .getListData(context, _sharedPreferences, '_');
+                      return ListData(this).getListData(context, 'lData',
+                          sharedPreferences: _sharedPreferences, condition: '_');
                     });
               },
             ),
@@ -105,14 +118,19 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 20)),
-              child: Text(mDataButtonTitle),
+              child: Text(_mDataButtonTitle!),
               onPressed: () {
+                if (_lDataNo == null) {
+                  CustomAlert().flutterDialog(context, '확인', '대분류를 선택해 주세요.');
+                  return;
+                }
                 showDialog(
                     context: context,
                     barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
                     builder: (BuildContext context) {
-                      return ListData(this).getListData(context,
-                          _sharedPreferences, MyStatefulWidget.lDataNo! + '_');
+                      return ListData(this).getListData(context, 'mData',
+                          sharedPreferences: _sharedPreferences,
+                          condition: _lDataNo! + '_');
                     });
               },
             ),
@@ -122,51 +140,84 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 20)),
-              child: Text(sDataButtonTitle),
+              child: Text(_sDataButtonTitle!),
+              onPressed: () {
+                if (_mDataNo == null) {
+                  CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
+                  return;
+                }
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      return ListData(this)
+                          .getListData(context, 'sData', condition: _mDataNo);
+                    });
+              },
+            ),
+          ),
+          //도매시장 정보 조회
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text(_wltDataButtonTitle!),
               onPressed: () {
                 showDialog(
                     context: context,
                     barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
                     builder: (BuildContext context) {
-                      // if (MyStatefulWidget.mDataNo != null) {
-                        return ListData(this).getListData(
-                            context, _sharedPreferences, MyStatefulWidget.mDataNo);
-                      // } else {
-                      //   CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
-                      // }
+                      return ListData(this).getListData(context, 'wltInfo');
                     });
-
               },
             ),
           ),
+          //도매시장법인 정보 조회
           Container(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(fontSize: 20)),
-              child: Text("Open api call"),
+              child: Text(_wltprDataButtonTitle!),
               onPressed: () {
-                if (MyStatefulWidget.mDataNo != null) {
-                  ManageOpenApi().getSDataHttp(MyStatefulWidget.mDataNo!);
-                  // ManageOpenApi().getDataDio(
-                  //     MyStatefulWidget.lDataNo!, MyStatefulWidget.mDataNo!);
-                } else {
-                  CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
-                }
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      return ListData(this).getListData(context, 'wltprInfo', condition:_wltNo);
+                    });
               },
             ),
-          )
+          ),
         ]),
       ),
     );
   }
 
-  void userChoiceEvent(dataType, dataValue) {
+  void userChoiceEvent(dataType, dateKey, dataValue) {
     if (dataType == DataType.large) {
-      lDataButtonTitle += '(' + dataValue + ')';
+      _lDataNo = dateKey;
+      _lDataButtonTitle = _lDataButtonDefaultTitle + ' (' + dataValue + ')';
+
+      _mDataButtonTitle = _mDataButtonDefaultTitle;
+      _mDataNo = null;
+      _sDataButtonTitle = _sDataButtonDefaultTitle;
+      _sDataNo = null;
     } else if (dataType == DataType.medium) {
-      mDataButtonTitle += '(' + dataValue + ')';
+      _mDataNo = dateKey;
+      _mDataButtonTitle = _mDataButtonDefaultTitle + ' (' + dataValue + ')';
+
+      _sDataButtonTitle = _sDataButtonDefaultTitle;
+      _sDataNo = null;
     } else if (dataType == DataType.small) {
-      sDataButtonTitle += '(' + dataValue + ')';
+      _sDataNo = dateKey;
+      _sDataButtonTitle = _sDataButtonDefaultTitle + ' (' + dataValue + ')';
+    } else if (dataType == DataType.wlt) {
+      _wltNo = dateKey;
+      _wltDataButtonTitle = _wltDataButtonDefaultTitle + ' (' + dataValue + ')';
+    } else if (dataType == DataType.wltpr) {
+      _wltprNo = dateKey;
+      _wltprDataButtonTitle =
+          _wltprDataButtonDefaultTitle + ' (' + dataValue + ')';
     }
     setState(() {});
   }

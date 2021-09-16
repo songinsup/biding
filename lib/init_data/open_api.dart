@@ -5,22 +5,92 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 
 class ManageOpenApi {
-  Future<List> getSDataHttp(mKey) async {
-    String serviceKey =
-        'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
+  ///품목 정보 조회(http)
+  Future<List> getSpciesInfo(mKey) async {
+    var domain = 'apis.data.go.kr';
     var encodedPath =
         '/B552895/openapi/service/AgpdStdCodeService/getAgpdStdProductList';
-    var url = Uri.http('apis.data.go.kr', encodedPath, {
+    var serviceKey =
+        'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
+    var param = {
       'serviceKey': serviceKey,
       'numOfRows': '100',
       'pageNo': '1',
       '_type': 'json',
       'catgoryCd': mKey.substring(0, 2),
       'prdlstCd': mKey
-    });
+    };
+    var itemList = await _getHttp(domain, encodedPath, param);
 
-    // Await the http get response, then decode the json-formatted response.
+    List<Map<String, dynamic>> resultList = [];
+    for (var eachItem in itemList) {
+      Map<String, dynamic> map = {};
+      map.putIfAbsent('stdSpciesCode', () => eachItem['stdSpciesCode']);
+      map.putIfAbsent('stdSpciesCodeNm', () => eachItem['stdSpciesCodeNm']);
+      resultList.add(map);
+    }
+    return resultList;
+  }
+
+  ///도매시장코드 정보 조회
+  Future<List> getWltInfo() async {
+    //http://openapi.epis.or.kr/openapi/service/CodeListService/getWltCodeList?serviceKey=oNkvjjLGUKoaVi%2B2lv%2FvznwlLxP4R5zsGgIO%2FDRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc%2B73H%2BzY0ECvAsvnyA%3D%3D&numOfRows=100
+    var domain = 'openapi.epis.or.kr';
+    var encodedPath = '/openapi/service/CodeListService/getWltCodeList';
+    var serviceKey =
+        'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
+    var param = {
+      'serviceKey': serviceKey,
+      'numOfRows': '1000',
+      'pageNo': '1',
+      '_type': 'json'
+    };
+    var itemList = await _getHttp(domain, encodedPath, param);
+
+    List<Map<String, dynamic>> resultList = [];
+    for (var eachItem in itemList) {
+      Map<String, dynamic> map = {};
+      map.putIfAbsent('marketco', () => eachItem['marketco']);
+      map.putIfAbsent('marketnm', () => eachItem['marketnm']);
+      resultList.add(map);
+    }
+    return resultList;
+  }
+
+  ///도매시장코드 정보 조회
+  Future<List> getWltprInfo(marketCode) async {
+    //http://openapi.epis.or.kr/openapi/service/CodeListService/getWltprCodeList?serviceKey=oNkvjjLGUKoaVi%2B2lv%2FvznwlLxP4R5zsGgIO%2FDRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc%2B73H%2BzY0ECvAsvnyA%3D%3D&MARKETCODE=310401
+    var domain = 'openapi.epis.or.kr';
+    var encodedPath = '/openapi/service/CodeListService/getWltprCodeList';
+    var serviceKey =
+        'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
+    var param = {
+      'serviceKey': serviceKey,
+      'numOfRows': '1000',
+      'pageNo': '1',
+      '_type': 'json'
+    };
+    if (marketCode != null) {
+      param['MARKETCODE'] = marketCode;
+    }
+    var itemList = await _getHttp(domain, encodedPath, param);
+
+    List<Map<String, dynamic>> resultList = [];
+    for (var eachItem in itemList) {
+      Map<String, dynamic> map = {};
+      map.putIfAbsent('cocode', () => eachItem['cocode']);
+      map.putIfAbsent('coname', () => eachItem['coname']);
+      resultList.add(map);
+    }
+    return resultList;
+  }
+
+  ///http api호출 공통
+  Future<List> _getHttp(domain, encodedPath, param) async {
+    var url = Uri.http(domain, encodedPath, param);
+
     print(url.toString());
+    // Await the http get response, then decode the json-formatted response.
     var response = await http.get(url);
     if (response.statusCode == 200) {
       var jsonResponse = convert.jsonDecode(utf8.decode(response.bodyBytes));
@@ -28,25 +98,21 @@ class ManageOpenApi {
       // print('result json[$jsonResponse]');
       // print('result map[$mapResponse]');
       if (mapResponse['response']['body']['items'] == "") {
-        return [];
+        return [{}];
       }
       print(mapResponse['response']['body']['items']['item']);
       var itemList = mapResponse['response']['body']['items']['item'];
-
-      List<Map<String, dynamic>> resultList = [];
-      for (var eachItem in itemList) {
-        Map<String, dynamic> map = {};
-        map.putIfAbsent('stdSpciesCode', () => eachItem['stdSpciesCode']);
-        map.putIfAbsent('stdSpciesCodeNm', () => eachItem['stdSpciesCodeNm']);
-        resultList.add(map);
+      if (itemList is Map) {
+        itemList = [itemList];
       }
-      return resultList;
+      return itemList;
     } else {
       print('Request failed with status: ${response.statusCode}.');
     }
-    return [];
+    return [{}];
   }
 
+  ///품목 정보 조회(dio)
   Future<void> getDataDio(String lkey, String mKey) async {
     String serviceKey =
         'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
