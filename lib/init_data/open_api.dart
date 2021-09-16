@@ -85,6 +85,37 @@ class ManageOpenApi {
     return resultList;
   }
 
+  ///도매시장별 경매정보
+  Future<List> getRltmAucBrkInfo(dates, scode, marketco, cocode) async {
+    //http://openapi.epis.or.kr/openapi/service/RltmAucBrknewsService/getWltRltmAucBrknewsList?serviceKey=oNkvjjL...&dates=20120827&lcode=01&mcode=0101&scode=010100&marketco=110001&cocode=110001
+    var domain = 'openapi.epis.or.kr';
+    var encodedPath = '/openapi/service/RltmAucBrknewsService/getPrdlstRltmAucBrknewsList';
+    var serviceKey =
+        'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
+    var param = {
+      'serviceKey': serviceKey,
+      'dates': '1000',
+      'lcode': '1000',
+      'mcode': '1000',
+      'scode': '1000',
+      'marketco': '1000',
+      'cocode': '1000',
+      'pageNo': '1',
+      '_type': 'json'
+    };
+
+    var itemList = await _getHttp(domain, encodedPath, param);
+
+    List<Map<String, dynamic>> resultList = [];
+    for (var eachItem in itemList) {
+      Map<String, dynamic> map = {};
+      map.putIfAbsent('cocode', () => eachItem['cocode']);
+      map.putIfAbsent('coname', () => eachItem['coname']);
+      resultList.add(map);
+    }
+    return resultList;
+  }
+
   ///http api호출 공통
   Future<List> _getHttp(domain, encodedPath, param) async {
     var url = Uri.http(domain, encodedPath, param);

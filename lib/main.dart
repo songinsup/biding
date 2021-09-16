@@ -108,7 +108,8 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
                     barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
                     builder: (BuildContext context) {
                       return ListData(this).getListData(context, 'lData',
-                          sharedPreferences: _sharedPreferences, condition: '_');
+                          sharedPreferences: _sharedPreferences,
+                          condition: '_');
                     });
               },
             ),
@@ -183,7 +184,25 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
                     context: context,
                     barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
                     builder: (BuildContext context) {
-                      return ListData(this).getListData(context, 'wltprInfo', condition:_wltNo);
+                      return ListData(this)
+                          .getListData(context, 'wltprInfo', condition: _wltNo);
+                    });
+              },
+            ),
+          ),
+          //검색버튼
+          Container(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20)),
+              child: Text('검색'),
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      return ListData(this)
+                          .getListData(context, 'wltprInfo', condition: _wltNo);
                     });
               },
             ),

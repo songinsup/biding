@@ -97,6 +97,13 @@ class ListData {
         String value = map['coname'].toString();
         buttonList.add(getButton(context, DataType.wltpr, key, value.trim()));
       }
+    } else if (what == 'search') {
+      var data = await ManageOpenApi().getWltprInfo(condition);
+      for (Map map in data) {
+        String key = map['cocode'].toString();
+        String value = map['coname'].toString();
+        buttonList.add(getButton(context, DataType.wltpr, key, value.trim()));
+      }
     }
     print(buttonList);
     return buttonList;
