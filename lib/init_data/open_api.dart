@@ -1,12 +1,11 @@
-import 'dart:collection';
 import 'dart:convert';
+import 'dart:convert' as convert;
 
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
 
 class ManageOpenApi {
-  getSDataHttp(String mKey) {
+  Future<List> getSDataHttp(mKey) async {
     String serviceKey =
         'oNkvjjLGUKoaVi+2lv/vznwlLxP4R5zsGgIO/DRcQkdM3SMTffR5ZB6KIZhqUKjdl7aMc+73H+zY0ECvAsvnyA==';
     var encodedPath =
@@ -16,43 +15,36 @@ class ManageOpenApi {
       'numOfRows': '100',
       'pageNo': '1',
       '_type': 'json',
-      'catgoryCd': mKey.substring(0,2),
+      'catgoryCd': mKey.substring(0, 2),
       'prdlstCd': mKey
     });
 
     // Await the http get response, then decode the json-formatted response.
     print(url.toString());
-    Future<Map<String, dynamic>> response = getResponse(url);
-    if (response) {
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
       var jsonResponse = convert.jsonDecode(utf8.decode(response.bodyBytes));
       var mapResponse = jsonResponse as Map<String, dynamic>;
       // print('result json[$jsonResponse]');
-      print('result map[$mapResponse]');
+      // print('result map[$mapResponse]');
+      if (mapResponse['response']['body']['items'] == "") {
+        return [];
+      }
       print(mapResponse['response']['body']['items']['item']);
-      List<Map<String, dynamic>> itemList = mapResponse['response']['body']
-          ['items']['item'] as List<Map<String, dynamic>>;
+      var itemList = mapResponse['response']['body']['items']['item'];
 
-      List<Map<String, dynamic>> resultList=[];
-      for(var eachItem in itemList){
+      List<Map<String, dynamic>> resultList = [];
+      for (var eachItem in itemList) {
         Map<String, dynamic> map = {};
-        map.putIfAbsent(eachItem['stdSpciesNewCode'], () => eachItem['stdSpciesNewNm']);
+        map.putIfAbsent('stdSpciesCode', () => eachItem['stdSpciesCode']);
+        map.putIfAbsent('stdSpciesCodeNm', () => eachItem['stdSpciesCodeNm']);
         resultList.add(map);
       }
       return resultList;
     } else {
       print('Request failed with status: ${response.statusCode}.');
-    };
-  }
-
-  Future<Map<String, dynamic>> getResponse(url) async {
-    var response = await http.get(url);
-    if (response.statusCode == 200) {
-      var jsonResponse = convert.jsonDecode(utf8.decode(response.bodyBytes));
-      return jsonResponse as Map<String, dynamic>;
-    }else{
-      print('Request failed with status: ${response.statusCode}.');
     }
-    return {};
+    return [];
   }
 
   Future<void> getDataDio(String lkey, String mKey) async {

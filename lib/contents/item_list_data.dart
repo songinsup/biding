@@ -16,10 +16,35 @@ class ListData {
       color: Colors.blue,
       child: Column(children: [
         Expanded(
-          child: ListView(
-              padding: EdgeInsets.all(10),
-              children: getWidgetList(context, sharedPreferences, upperKey)),
-        ),
+            child: FutureBuilder<List<Widget>>(
+          future: getWidgetList(context, sharedPreferences, upperKey),
+          builder: (BuildContext context, AsyncSnapshot<List<Widget>> snapshot) {
+            if (snapshot.hasData) {
+              return ListView(
+                  padding: EdgeInsets.all(10), children: snapshot.data!);
+            } else if (snapshot.hasError) {
+              return ListView(padding: EdgeInsets.all(10), children: []);
+            }
+            //waiting
+            else {
+              return ListView(padding: EdgeInsets.all(10), children: [
+                SizedBox(
+                  child: CircularProgressIndicator(),
+                  width: 60,
+                  height: 60,
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Text('Awaiting result...'),
+                )
+              ]);
+            }
+          },
+        )),
+        // child: ListView(
+        //     padding: EdgeInsets.all(10),
+        //     children: getWidgetList(context, sharedPreferences, upperKey)),
+        // ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
               primary: Colors.cyan, textStyle: const TextStyle(fontSize: 20)),
@@ -32,8 +57,8 @@ class ListData {
     );
   }
 
-  List<Widget> getWidgetList(
-      context, sharedPreferences, String upperkey)  {
+  Future<List<Widget>> getWidgetList(
+      context, sharedPreferences, String upperkey) async {
     List<Widget> buttonList = [];
     if (upperkey.length < 4) {
       for (String key in sharedPreferences.getStringList(upperkey)!) {
@@ -44,20 +69,18 @@ class ListData {
         buttonList.add(getButton(context, key, value.trim()));
       }
     } else {
-      var sdata = ManageOpenApi().getSDataHttp(upperkey);
+      var sdata = await ManageOpenApi().getSDataHttp(upperkey);
       for (Map map in sdata) {
-        String key = 'stdSpciesNewCode';
-        String value = map['stdSpciesNewCode'];
-        if (value == null) {
-          value = '데이터없음';
-        }
+        String key = map['stdSpciesCode'];
+        String value = map['stdSpciesCodeNm'];
         buttonList.add(getButton(context, key, value.trim()));
       }
     }
+    print(buttonList);
     return buttonList;
   }
 
-  ButtonStyleButton getButton(context, key, value) {
+  ElevatedButton getButton(context, key, value) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
           primary: Colors.amber, textStyle: const TextStyle(fontSize: 20)),

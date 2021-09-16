@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class DatePickerManage extends State{
+class DatePickerManage extends State {
   DateTime currentDate = DateTime.now();
 
   Future<void> _selectDate(BuildContext context) async {

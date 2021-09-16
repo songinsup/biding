@@ -124,13 +124,18 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
                   textStyle: const TextStyle(fontSize: 20)),
               child: Text(sDataButtonTitle),
               onPressed: () {
-                if (MyStatefulWidget.mDataNo != null) {
-                  ManageOpenApi().getSDataHttp(MyStatefulWidget.mDataNo!);
-                  // ManageOpenApi().getDataDio(
-                  //     MyStatefulWidget.lDataNo!, MyStatefulWidget.mDataNo!);
-                } else {
-                  CustomAlert().flutterDialog(context, '확인', '대분류를 선택해 주세요.');
-                }
+                showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 영역 터치시 닫을지 여부
+                    builder: (BuildContext context) {
+                      // if (MyStatefulWidget.mDataNo != null) {
+                        return ListData(this).getListData(
+                            context, _sharedPreferences, MyStatefulWidget.mDataNo);
+                      // } else {
+                      //   CustomAlert().flutterDialog(context, '확인', '중분류를 선택해 주세요.');
+                      // }
+                    });
+
               },
             ),
           ),

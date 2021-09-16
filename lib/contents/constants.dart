@@ -1,5 +1,1 @@
-enum DataType {
-
-  large, medium, small
-
-}
+enum DataType { large, medium, small }
