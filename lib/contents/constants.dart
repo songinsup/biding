@@ -1,1 +1,1 @@
-enum DataType { large, medium, small, wlt, wltpr }
+enum DataType { large, medium, small, wlt, wltpr, search }

@@ -11,7 +11,7 @@ class ListData {
 
   ListData(this._parent);
 
-  getListData(context, String what, {sharedPreferences, String? condition}) {
+  getListData(context, String what, {sharedPreferences, condition}) {
     return Container(
       margin: EdgeInsets.all(30),
       color: Colors.blue,
@@ -57,10 +57,10 @@ class ListData {
   }
 
   Future<List<dynamic>> getWidgetList(context, String what,
-      {sharedPreferences, String? condition}) async {
+      {sharedPreferences, condition}) async {
     List<Widget> buttonList = [];
     if (what == 'lData') {
-      for (String key in sharedPreferences.getStringList(condition)!) {
+      for (String key in sharedPreferences.getStringList(condition['upperKey'])!) {
         String? value = sharedPreferences.getString(key);
         if (value == null) {
           value = '데이터없음';
@@ -68,7 +68,7 @@ class ListData {
         buttonList.add(getButton(context, DataType.large, key, value.trim()));
       }
     } else if (what == 'mData') {
-      for (String key in sharedPreferences.getStringList(condition)!) {
+      for (String key in sharedPreferences.getStringList(condition['upperKey'])!) {
         String? value = sharedPreferences.getString(key);
         if (value == null) {
           value = '데이터없음';
@@ -76,10 +76,10 @@ class ListData {
         buttonList.add(getButton(context, DataType.medium, key, value.trim()));
       }
     } else if (what == 'sData') {
-      var data = await ManageOpenApi().getSpciesInfo(condition);
+      var data = await ManageOpenApi().getSpciesInfo(condition!);
       for (Map map in data) {
-        String key = map['stdSpciesCode'];
-        String value = map['stdSpciesCodeNm'];
+        String key = map['stdSpciesCode'].toString();
+        String value = map['stdSpciesCodeNm'].toString();
         buttonList.add(getButton(context, DataType.small, key, value.trim()));
       }
     } else if (what == 'wltInfo') {
@@ -91,21 +91,37 @@ class ListData {
         buttonList.add(getButton(context, DataType.wlt, key, value.trim()));
       }
     } else if (what == 'wltprInfo') {
-      var data = await ManageOpenApi().getWltprInfo(condition);
+      var data = await ManageOpenApi().getWltprInfo(condition!);
       for (Map map in data) {
         String key = map['cocode'].toString();
         String value = map['coname'].toString();
         buttonList.add(getButton(context, DataType.wltpr, key, value.trim()));
       }
-    } else if (what == 'search') {
-      var data = await ManageOpenApi().getWltprInfo(condition);
+    } else if (what == 'summary_search') {
+      var data = await ManageOpenApi().getFrmprdPrdlstPcInfo(condition!);
       for (Map map in data) {
         String key = map['cocode'].toString();
-        String value = map['coname'].toString();
-        buttonList.add(getButton(context, DataType.wltpr, key, value.trim()));
+        String value =
+            map['dates'].toString()+' ('+
+                map['gradename'].toString()+')'+
+                map['sclassname'].toString()+' '+
+                map['avgprice'].toString()+' ''원';
+        buttonList.add(getButton(context, DataType.search, key, value.trim()));
+      }
+    }else if (what == 'full_search') {
+      var data = await ManageOpenApi().getRltmAucBrkInfo(condition!);
+      for (Map map in data) {
+        String key = map['cocode'].toString();
+        String value =
+            map['bidtime'].toString()+' '+
+                map['sclassname'].toString()+'('+
+                map['tradeamt'].toString()+'/'+
+                map['unitname'].toString()+') '+
+                map['price'].toString()+'원';
+        buttonList.add(getButton(context, DataType.search, key, value.trim()));
       }
     }
-    print(buttonList);
+    // print(buttonList);
     return buttonList;
   }
 
