@@ -102,7 +102,8 @@ class ListData {
       for (Map map in data) {
         String key = map['cocode'].toString();
         String value =
-            map['dates'].toString()+' ('+
+            map['dates'].toString()+' '+
+            map['coname'].toString()+' ('+
                 map['gradename'].toString()+')'+
                 map['sclassname'].toString()+' '+
                 map['avgprice'].toString()+' ''원';

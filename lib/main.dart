@@ -50,8 +50,8 @@ class MyStatefulWidgetState extends State<MyStatefulWidget> {
   String? _wltDataButtonTitle;
   String? _wltprDataButtonTitle;
 
-  final DateFormat visibleFormat = DateFormat('yyyy-MM-dd');
-  final DateFormat apiDataFormat = DateFormat('yyyyMMdd');
+  static final DateFormat visibleFormat = DateFormat('yyyy-MM-dd');
+  static final DateFormat apiDataFormat = DateFormat('yyyyMMdd');
   DateTime currentDate = DateTime.now();
   String? visibleDate;
 

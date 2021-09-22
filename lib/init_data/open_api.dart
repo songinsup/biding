@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../main.dart';
+
 class ManageOpenApi {
   ///품목 정보 조회(http)
   Future<List> getSpciesInfo(Map map) async {
@@ -144,24 +146,29 @@ class ManageOpenApi {
       '_type': 'json'
     };
 
-    var itemList = await _getHttp(domain, encodedPath, param);
-
     List<Map<String, dynamic>> resultList = [];
-    for (var eachItem in itemList) {
-      Map<String, dynamic> map = {};
-      map.putIfAbsent('dates', () => eachItem['dates']);
-      map.putIfAbsent('maxprice', () => eachItem['maxprice']);
-      map.putIfAbsent('avgprice', () => eachItem['avgprice']);
-      map.putIfAbsent('minprice', () => eachItem['minprice']);
-      map.putIfAbsent('coname', () => eachItem['coname']);
-      map.putIfAbsent('marketname', () => eachItem['marketname']);
-      map.putIfAbsent('gradename', () => eachItem['gradename']);
-      map.putIfAbsent('unitname', () => eachItem['unitname']);
-      map.putIfAbsent('sclassname', () => eachItem['sclassname']);
-      map.putIfAbsent('sumamt', () => eachItem['sumamt'].toString());
-      map.putIfAbsent('sanji', () => eachItem['sanji']);
-      // map.putIfAbsent('price', () => eachItem['price'].toString());
-      resultList.add(map);
+    var startDate = DateTime.parse(map['dates']);
+    for(int i=1;i<=10;i++) {
+      var beforeDay=MyStatefulWidgetState.apiDataFormat.format(startDate.subtract(Duration(days: i)));
+      param['dates']=beforeDay;
+      var itemList = await _getHttp(domain, encodedPath, param);
+
+      for (var eachItem in itemList) {
+        Map<String, dynamic> map = {};
+        map.putIfAbsent('dates', () => eachItem['dates']);
+        map.putIfAbsent('maxprice', () => eachItem['maxprice']);
+        map.putIfAbsent('avgprice', () => eachItem['avgprice']);
+        map.putIfAbsent('minprice', () => eachItem['minprice']);
+        map.putIfAbsent('coname', () => eachItem['coname']);
+        map.putIfAbsent('marketname', () => eachItem['marketname']);
+        map.putIfAbsent('gradename', () => eachItem['gradename']);
+        map.putIfAbsent('unitname', () => eachItem['unitname']);
+        map.putIfAbsent('sclassname', () => eachItem['sclassname']);
+        map.putIfAbsent('sumamt', () => eachItem['sumamt'].toString());
+        map.putIfAbsent('sanji', () => eachItem['sanji']);
+        // map.putIfAbsent('price', () => eachItem['price'].toString());
+        resultList.add(map);
+      }
     }
     return resultList;
   }
@@ -179,7 +186,7 @@ class ManageOpenApi {
       // print('result json[$jsonResponse]');
       // print('result map[$mapResponse]');
       if (mapResponse['response']['body']['items'] == "") {
-        return [{}];
+        return [];
       }
       print(mapResponse['response']['body']['items']['item']);
       var itemList = mapResponse['response']['body']['items']['item'];
@@ -190,7 +197,7 @@ class ManageOpenApi {
     } else {
       print('Request failed with status: ${response.statusCode}.');
     }
-    return [{}];
+    return [];
   }
 
   ///품목 정보 조회(dio)
